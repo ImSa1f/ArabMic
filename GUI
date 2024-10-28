@@ -4,6 +4,7 @@ local LoopTpOn = false
 local AntiKickOn = false
 local AntiCuffOn = false
 local AutoEquipScissorsOn = false
+local AutoReEquipScissorsOn = false
 local AutoEquipCuffOn = false
 local HandCuffAllOn = false
 local ChangeHairAllOn = false
@@ -24,16 +25,36 @@ local function equipHandcuff()
     end)
 end
 
+
+
+local function ReEquipScissor()
+    pcall(function()
+        local player = game.Players.LocalPlayer
+        local scissor = player.Backpack:FindFirstChild("Scissors")
+        if scissor then
+            scissor.Parent = player.Character
+            task.wait(1)
+            game.Players.LocalPlayer.Character.Humanoid:UnequipTools()
+        end
+        task.wait(0.2)
+    end)
+end
+
+
+
 local function EquipScissor()
     pcall(function()
         local player = game.Players.LocalPlayer
         local scissor = player.Backpack:FindFirstChild("Scissors")
         if scissor then
             scissor.Parent = player.Character
+
         end
         task.wait(0.2)
     end)
 end
+
+
 
 
 repeat task.wait() until game:IsLoaded()
@@ -157,6 +178,22 @@ main:AddToggle({
         end)
     end
 })
+
+main:AddToggle({
+    Name = "RE Equip Scissors",
+    Default = AutoReEquipScissorsOn,
+    Save = true,
+    Flag = "REEquip_Scissors",
+    Callback = function(state)
+        bruh = state
+        task.spawn(function()
+            while bruh do task.awit(3)
+                ReEquipScissor()
+            end
+        end)
+    end
+})
+
 local playerName = ""
 local playerList = {"Lofi On Top!"}
 
@@ -355,4 +392,10 @@ end)
 task.spawn(function()
     repeat task.wait() until game:IsLoaded()
         loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+end)
+
+
+task.spawn(function()
+local queueTeleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
+queueTeleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/ImSa1f/ArabMic/refs/heads/main/GUI'))()")
 end)
