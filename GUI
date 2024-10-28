@@ -1,0 +1,358 @@
+
+
+local LoopTpOn = false
+local AntiKickOn = false
+local AntiCuffOn = false
+local AutoEquipScissorsOn = false
+local AutoEquipCuffOn = false
+local HandCuffAllOn = false
+local ChangeHairAllOn = false
+local AlwaysFloat = false
+local SetSpeed = 0
+
+
+local function equipHandcuff()
+    pcall(function()
+        local player = game.Players.LocalPlayer
+        local handcuff = player.Backpack:FindFirstChild("Handcuff")
+        if handcuff or scissor then
+            if handcuff then
+                handcuff.Parent = player.Character
+            end
+            task.wait(0.2)
+        end
+    end)
+end
+
+local function EquipScissor()
+    pcall(function()
+        local player = game.Players.LocalPlayer
+        local scissor = player.Backpack:FindFirstChild("Scissors")
+        if scissor then
+            scissor.Parent = player.Character
+        end
+        task.wait(0.2)
+    end)
+end
+
+
+repeat task.wait() until game:IsLoaded()
+
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/vep1032/VepStuff/main/DRCO", true))()
+local Window = OrionLib:MakeWindow({Name = "Lofi On Top!", TestMode = false, SaveConfig = true, ConfigFolder = "LofiSettings", IntroEnabled = false})
+local playerName
+local RunService = cloneref(game:GetService("RunService"))
+local floatName = "FloatingPart"
+local Float
+local FloatingFunc
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local Player = Players.LocalPlayer
+GuiService = cloneref(game:GetService("GuiService"))
+
+local main = Window:MakeTab({
+    Name = "MAIN",
+    Icon = "rbxassetid://4483345998",
+    TestersOnly = false
+})
+
+main:AddSection({ Name = "Fun" })
+
+main:AddToggle({
+    Name = "Rejoin on Kick",
+    Default = AntiKickOn,
+    Save = true,
+    Flag = "Rejoin_Error",
+    Callback = function(state)
+        if state then
+            local Players = game.Players
+            local TeleportService = game:GetService("TeleportService")
+            local placeId = game.PlaceId
+            local JobId = game.JobId
+            local Player = Players.LocalPlayer
+            
+            Players.PlayerRemoving:Connect(function(player)
+                if player == Player then
+                    print("Kicked from game, attempting to rejoin...")
+                    task.wait()
+                    TeleportService:Teleport(placeId, Player)
+                else
+                    TeleportService:TeleportToPlaceInstance(placeId, JobId, Players.LocalPlayer)
+                end
+            end)
+
+            GuiService.ErrorMessageChanged:Connect(function()
+                if GuiService:GetErrorMessage() ~= "" then
+                    print("Error detected, attempting to rejoin...")
+                    task.wait()
+                    TeleportService:Teleport(placeId, Player)
+                else
+                    TeleportService:TeleportToPlaceInstance(placeId, JobId, Players.LocalPlayer)
+                end
+            end)
+        end
+    end
+})
+
+
+
+
+main:AddToggle({
+    Name = "Anti Cuff",
+    Default = AntiCuffOn,
+    Save = true,
+    Flag = "Unanchor_Parts",
+    Callback = function(state)
+        anticuff = state
+        task.spawn(function()
+            while anticuff do task.wait()
+                pcall(function()
+                    local player = game.Players.LocalPlayer  
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    if character then
+                        for _, part in pairs(character:GetDescendants()) do
+                            if part:IsA("BasePart") and part.Anchored then
+                                part.Anchored = false
+                            end
+                        end
+                    end
+                end)
+            end
+        end)
+    end
+})
+
+local function tppos()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-117, -11, -256)
+end
+
+main:AddToggle({
+    Name = "Equip Handcuffs",
+    Default = AutoEquipCuffOn,
+    Save = true,
+    Flag = "Equip_Handcuff",
+    Callback = function(state)
+        cuh = state
+        task.spawn(function()
+            while cuh do task.wait(1)
+                equipHandcuff()
+            end
+        end)
+    end
+})
+
+main:AddToggle({
+    Name = "Equip Scissors",
+    Default = AutoEquipScissorsOn,
+    Save = true,
+    Flag = "Equip_Scissors",
+    Callback = function(state)
+        bruh = state
+        task.spawn(function()
+            while bruh do
+                EquipScissor()
+                task.wait(1)
+                game.Players.LocalPlayer.Character.Humanoid:UnequipTools()
+            end
+        end)
+    end
+})
+local playerName = ""
+local playerList = {"Lofi On Top!"}
+
+local playerDropdown = main:AddDropdown({
+    Name = "Player Name : (Empty is All)",
+    Default = "Select a player",
+    List = playerList,
+    Callback = function(Value)
+        playerName = Value
+    end
+})
+
+local function refreshPlayers()
+    playerList = {"All Players"}
+    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            table.insert(playerList, player.Name)
+        end
+    end
+    playerDropdown:Refresh(playerList, true)
+end
+
+main:AddButton({
+    Name = "Clear Selection",
+    Callback = function()
+        playerName = ""
+        playerDropdown:Set("Select a player")
+    end
+})
+
+
+
+
+main:AddButton({
+    Name = "Refresh Player List",
+    Callback = function()
+        refreshPlayers()
+    end
+})
+
+refreshPlayers()
+
+
+main:AddSlider({
+    Name = "Handcuff/Hair Slider",
+    Min = 0,
+    Max = 20,
+    Default = SetSpeed,
+    Color = Color3.new(0.968627, 0.298039, 0.388235),
+    Increment = 0.1,
+    Save = true,
+    Flag = "HandcuffHairSpeed",
+    Callback = function(t)
+        waitspeed = t
+    end
+})
+main:AddToggle({
+    Name = "Handcuff All",
+    Default = HandCuffAllOn,
+    Save = true,
+    Flag = "Handcuff_Data_Sender",
+    Callback = function(state)
+        seed = state
+        task.spawn(function()
+            while seed do
+                pcall(function()
+                    local players = game.Players:GetPlayers()
+                    for _, v in pairs(players) do
+                        if v.Name ~= game.Players.LocalPlayer.Name and v.Character and v.Character:FindFirstChild('HumanoidRootPart') then
+                            if (playerName == nil or playerName == "") or (v.Name == playerName) then
+                                local args = { v.Character.HumanoidRootPart }
+                                game.Players.LocalPlayer.Character.Handcuff.DataSender:FireServer(unpack(args))
+                            end
+                        end
+                    end
+                end)
+                task.wait(waitspeed)
+            end
+        end)
+    end
+})
+
+
+main:AddToggle({
+    Name = "Change Hair All",
+    Default = ChangeHairAllOn,
+    Save = true,
+    Flag = "Scissors_Change_Hair",
+    Callback = function(state)
+        fam = state
+        task.spawn(function()
+            while fam do task.wait(waitspeed)
+                pcall(function()
+                    local localPlayer = game.Players.LocalPlayer
+                    local players = game.Players:GetPlayers()
+                    for _, player in pairs(players) do
+                        if player.Name ~= localPlayer.Name and player.Character and player.Character:FindFirstChild('HumanoidRootPart') then
+                            local scissors = localPlayer.Character:FindFirstChild("Scissors")
+                            if scissors and scissors:FindFirstChild("ChangeHair") then
+                                if (playerName == nil or playerName == "") or (player.Name == playerName) then
+                                    local args = {
+                                        [1] = player.Character.HumanoidRootPart,
+                                        [2] = player.Character.HumanoidRootPart.CFrame
+                                    }
+                                    scissors.ChangeHair:FireServer(unpack(args))
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end)
+    end
+})
+
+
+function getRoot(char)
+    return char:FindFirstChild('HumanoidRootPart') or char:FindFirstChild('Torso') or char:FindFirstChild('UpperTorso')
+end
+
+local function startFloating(character)
+    if not character:FindFirstChild(floatName) then
+        Float = Instance.new('Part')
+        Float.Name = floatName
+        Float.Parent = character
+        Float.Transparency = 1
+        Float.Size = Vector3.new(2, 0.2, 1.5)
+        Float.Anchored = true
+        local FloatValue = -3.1
+        Float.CFrame = getRoot(character).CFrame * CFrame.new(0, FloatValue, 0)
+
+        local function FloatPadLoop()
+            if character:FindFirstChild(floatName) and getRoot(character) then
+                Float.CFrame = getRoot(character).CFrame * CFrame.new(0, FloatValue, 0)
+            else
+                stopFloating()
+            end
+        end
+
+        FloatingFunc = RunService.Heartbeat:Connect(FloatPadLoop)
+
+        character:FindFirstChildOfClass('Humanoid').Died:Connect(function()
+            stopFloating()
+        end)
+    end
+end
+
+local function stopFloating()
+    if Float then
+        Float:Destroy()
+        Float = nil
+    end
+    if FloatingFunc then
+        FloatingFunc:Disconnect()
+        FloatingFunc = nil
+    end
+end
+
+main:AddToggle({
+    Name = "Enable Floating",
+    Default = AlwaysFloat,
+    Save = true,
+    Flag = "Enable_Floating",
+    Callback = function(state)
+        local character = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+        if state then
+            startFloating(character)
+        else
+            stopFloating()
+        end
+    end
+})
+
+main:AddToggle({
+    Name = "Loop Tp",
+    Default = LoopTpOn,
+    Save = true,
+    Flag = "LoopTp",
+    Callback = function(state)
+        while state do task.wait()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-117, -11, -256)
+        end
+    end
+})
+
+
+
+
+
+task.spawn(function()
+    repeat task.wait() until game:IsLoaded()
+    repeat task.wait() until game.Players.LocalPlayer.Character ~= nil 
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-357, 19, -16)
+end)
+
+task.spawn(function()
+    repeat task.wait() until game:IsLoaded()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+end)
